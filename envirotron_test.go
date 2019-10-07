@@ -2,6 +2,7 @@ package envirotron_test
 
 import (
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -42,6 +43,20 @@ type Values struct {
 	Uint64  uint64  `env:"SOME_UINT_64"`
 	Float32 float32 `env:"SOME_FLOAT_32"`
 	Float64 float64 `env:"SOME_FLOAT_64"`
+}
+
+type doubler int
+
+func (d *doubler) UnmarshalEnv(raw string) {
+	i, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	*d = (doubler)(i * 2)
+}
+
+type Callback struct {
+	Doubler doubler `env:"DOUBLE_ME"`
 }
 
 func TestEnvirotronShallow(t *testing.T) {
@@ -217,4 +232,24 @@ func TestEnvirotronBools(t *testing.T) {
 		env.Override(&check)
 		is(check.Bool, false, no, "structure bool is overridden to be false")
 	}
+}
+
+func TestEnvirotronCallback(t *testing.T) {
+	is := func(got doubler, expect int, message string) {
+		if got != (doubler)(expect) {
+			t.Errorf("%s failed - got '%d', expected '%d'\n", message, got, expect)
+		}
+	}
+
+	set(Env{
+		"DOUBLE_ME": "42",
+	})
+
+	callback := Callback{
+		Doubler: 1,
+	}
+	is(callback.Doubler, 1, "initial doubler value is set before testing")
+
+	env.Override(&callback)
+	is(callback.Doubler, 84, "doubler value is overridden from DOUBLE_ME env var")
 }
