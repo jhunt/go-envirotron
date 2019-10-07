@@ -198,9 +198,9 @@ func TestEnvirotronBools(t *testing.T) {
 		}
 	}
 
-	trues  := strings.Split("Y y Yes YES yES true TrUe 1", " ")
+	trues := strings.Split("Y y Yes YES yES true TrUe 1", " ")
 	falses := strings.Split("N n No NO nO false fALse 0", " ")
-	check  := Values{}
+	check := Values{}
 
 	for _, yes := range trues {
 		check.Bool = false
